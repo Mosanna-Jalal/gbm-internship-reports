@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { Footer } from "@/components/footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Internship Report Portal · GBM College, Gaya",
+  title: "Internship Reports · GBM College, Gaya",
   description:
     "Download your internship report from the Karuna Swayam Sevi Sansthan internship (Tailoring, Beautician, Mehndi) using your university roll number.",
   applicationName: "GBM Internship Reports",
@@ -23,21 +24,28 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#05060b",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-ink font-sans text-zinc-200">
+      <body className="flex min-h-full flex-col bg-bg font-sans text-fg">
         {children}
+        <Footer />
         <Toaster
-          theme="dark"
           position="top-center"
-          richColors
+          theme="system"
           closeButton
-          toastOptions={{ className: "font-sans" }}
+          toastOptions={{
+            classNames: {
+              toast: "!rounded-xl !border !border-line !bg-surface !text-fg !shadow-card font-sans",
+              description: "!text-muted",
+            },
+          }}
         />
       </body>
     </html>

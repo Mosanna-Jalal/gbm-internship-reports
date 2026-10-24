@@ -1,11 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import Link from "next/link";
+import { AnimatePresence, MotionConfig } from "motion/react";
 import { toast } from "sonner";
-import { Database, Hash, LoaderCircle, Search, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, LoaderCircle, Search } from "lucide-react";
 import { Terminal, type TermKind, type TermLine } from "@/components/terminal";
 import { ResultCard, type ReportResult } from "@/components/result-card";
+import { CorrectionDialog, type CorrectionTarget } from "@/components/correction-dialog";
+import { buttonClass } from "@/components/ui";
 import { normalizeRoll } from "@/lib/roll";
 import { formatBytes, formatMs, formatRate, parseServerTiming, shortHash } from "@/lib/format";
 import type { ApiError, ReportMeta, StatusPayload } from "@/lib/types";
@@ -25,7 +28,7 @@ class RequestFailure extends Error {
 const FAILURE_TOAST: Record<string, { title: string; description: string }> = {
   not_found: {
     title: "No report found",
-    description: "Check the university roll number on your admit card. Still stuck? Contact the college office.",
+    description: "Check the number on your admit card, or find your name in the list of all reports.",
   },
   invalid_roll: {
     title: "That doesn't look like a roll number",
@@ -51,7 +54,7 @@ function transportOf(path: string) {
 }
 
 const BOOT: TermLine[] = [
-  { id: 1, kind: "banner", text: "gbm-reports v1.0 · secure report retrieval", at: 0 },
+  { id: 1, kind: "banner", text: "gbm-reports v2 · secure report retrieval", at: 0 },
   { id: 2, kind: "cmd", text: "gbm-reports status", at: 0 },
   { id: 3, kind: "info", text: "GET /api/status", at: 0 },
 ];
@@ -62,6 +65,7 @@ export function ReportFinder() {
   const [lines, setLines] = useState<TermLine[]>(BOOT);
   const [result, setResult] = useState<ReportResult | null>(null);
   const [vault, setVault] = useState<Vault>({ state: "connecting" });
+  const [correction, setCorrection] = useState<CorrectionTarget | null>(null);
   const seq = useRef(BOOT.length);
   const origin = useRef(0);
   const booted = useRef(false);
@@ -140,7 +144,7 @@ export function ReportFinder() {
     setBusy(true);
     setLines([]);
     origin.current = performance.now();
-    const toastId = toast.loading("Searching the report vault…", { description: `University roll ${roll}` });
+    const toastId = toast.loading("Searching the report vault…", { description: `Roll number ${roll}` });
     log("cmd", `gbm-reports fetch --roll ${roll}`);
     log("dim", `input normalised → "${roll}" (${roll.length} chars) · ok`);
 
@@ -160,6 +164,7 @@ export function ReportFinder() {
         const st = parseServerTiming(res.headers.get("server-timing"));
         if (res.status === 404) {
           log("dim", `db.find ${formatMs(st["db-query"] ?? 0)} · 0 documents match { universityRoll | registrationNo: "${roll}" }`);
+          log("dim", "tip: browse /reports to find your name ↵");
         }
         throw new RequestFailure(res.status, err.error ?? "server_error", err.message ?? "request failed");
       }
@@ -264,68 +269,79 @@ export function ReportFinder() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="flex flex-col gap-4">
-        <div
-          className="relative animate-rise rounded-2xl bg-gradient-to-b from-white/[0.14] via-white/[0.05] to-gold/20 p-px"
-          style={{ animationDelay: "320ms" }}
-        >
-          <div className="rounded-[15px] bg-[#090a11]/90 p-4 backdrop-blur-xl sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <label htmlFor="roll" className="text-sm font-medium text-zinc-200">
-                University Roll Number
-              </label>
-              <VaultBadge vault={vault} />
-            </div>
+        <div className="animate-rise rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-6" style={{ animationDelay: "240ms" }}>
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="roll" className="text-[13px] font-medium">
+              University roll number
+            </label>
+            <VaultBadge vault={vault} />
+          </div>
 
-            <form onSubmit={fetchReport} className="mt-3 flex flex-col gap-2.5 sm:flex-row">
-              <div className="relative flex-1">
-                <Hash className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
-                <input
-                  id="roll"
-                  ref={inputRef}
-                  value={value}
-                  onChange={(e) => setValue(e.target.value.toUpperCase())}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  maxLength={20}
-                  placeholder="Enter your university roll no."
-                  aria-describedby="roll-help"
-                  className="h-12 w-full rounded-xl border border-white/10 bg-black/50 pl-10 pr-3 font-mono text-base tracking-[0.12em] text-white outline-none transition placeholder:font-sans placeholder:tracking-normal placeholder:text-zinc-600 focus:border-gold/50 focus:ring-4 focus:ring-gold/15"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={busy}
-                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-gold-soft via-gold to-amber-600 px-6 text-sm font-semibold text-black shadow-[0_12px_32px_-12px_rgb(212_175_55/0.8)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait disabled:opacity-80"
-              >
-                <span
-                  aria-hidden
-                  className="absolute inset-y-0 left-0 w-1/3 animate-shimmer bg-gradient-to-r from-transparent via-white/50 to-transparent"
-                />
-                {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
-                <span className="relative">{busy ? "Fetching…" : "Fetch report"}</span>
-              </button>
-            </form>
+          <form onSubmit={fetchReport} className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              id="roll"
+              ref={inputRef}
+              value={value}
+              onChange={(e) => setValue(e.target.value.toUpperCase())}
+              inputMode="numeric"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              maxLength={20}
+              placeholder="e.g. 24281041312"
+              aria-describedby="roll-help"
+              className="h-12 w-full rounded-xl sm:flex-1 border border-line-strong bg-bg px-4 font-mono text-[16px] tracking-[0.08em] outline-none transition placeholder:font-sans placeholder:tracking-normal placeholder:text-faint focus:border-fg focus:ring-4 focus:ring-fg/[0.06]"
+            />
+            <button type="submit" disabled={busy} className={buttonClass("primary", "h-12 px-6 disabled:!opacity-80")}>
+              {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" strokeWidth={1.75} />}
+              {busy ? "Fetching…" : "Fetch report"}
+            </button>
+          </form>
 
-            <p id="roll-help" className="mt-2.5 text-xs leading-relaxed text-zinc-500">
-              The number printed on your university admit card. No university roll number yet? Enter your university
-              registration number instead.
-            </p>
+          <p id="roll-help" className="mt-2.5 text-[12.5px] leading-relaxed text-muted">
+            As printed on your admit card. No university roll number yet? Use your registration number.
+          </p>
 
-            <div className="mt-4">
-              <Terminal lines={lines} busy={busy} />
-            </div>
+          <div className="mt-4">
+            <Terminal lines={lines} busy={busy} />
           </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {result && <ResultCard key={result.roll} result={result} onReset={reset} />}
+          {result && (
+            <ResultCard
+              key={result.roll}
+              result={result}
+              onReset={reset}
+              onCorrect={() => setCorrection({ mode: "edit", row: result.meta.student })}
+            />
+          )}
         </AnimatePresence>
 
-        <Steps />
+        <Link
+          href="/reports"
+          className="group flex animate-rise items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-5 py-4 transition hover:border-line-strong"
+          style={{ animationDelay: "320ms" }}
+        >
+          <span className="min-w-0">
+            <span className="block text-[14px] font-medium">Can’t find your report?</span>
+            <span className="mt-0.5 block text-[13px] text-muted">
+              {vault.state === "online" && vault.reports ? `Browse all ${vault.reports} reports` : "Browse all reports"}, check
+              your roll numbers, or ask for a correction.
+            </span>
+          </span>
+          <ArrowRight className="size-4 shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-fg" />
+        </Link>
       </div>
+
+      <CorrectionDialog
+        target={correction}
+        onClose={() => setCorrection(null)}
+        onSent={() =>
+          setResult((r) => (r ? { ...r, meta: { ...r.meta, student: { ...r.meta.student, correctionPending: true } } } : r))
+        }
+      />
     </MotionConfig>
   );
 }
@@ -333,51 +349,14 @@ export function ReportFinder() {
 function VaultBadge({ vault }: { vault: Vault }) {
   const view =
     vault.state === "online"
-      ? { dot: "bg-emerald-400 animate-pulse-ring", text: "online", count: vault.reports }
+      ? { dot: "bg-ok animate-pulse-dot", text: vault.reports ? `${vault.reports} reports online` : "online" }
       : vault.state === "offline"
-        ? { dot: "bg-rose-400", text: "offline", count: 0 }
-        : { dot: "bg-amber-400 animate-pulse", text: "connecting…", count: 0 };
+        ? { dot: "bg-bad", text: "offline" }
+        : { dot: "bg-faint animate-pulse", text: "connecting…" };
   return (
-    <motion.span
-      key={vault.state}
-      initial={{ opacity: 0, y: -4 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 font-mono text-[10px] text-zinc-400"
-    >
+    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[12px] text-muted">
       <span className={`size-1.5 rounded-full ${view.dot}`} />
-      <span className="hidden sm:inline">vault </span>
       {view.text}
-      {view.count > 0 && <span>· {view.count}<span className="hidden sm:inline"> reports</span></span>}
-    </motion.span>
-  );
-}
-
-const STEPS = [
-  { Icon: Hash, title: "Enter roll no.", text: "As printed on your admit card" },
-  { Icon: Database, title: "Fetched live", text: "From the MongoDB report vault" },
-  { Icon: ShieldCheck, title: "Verified", text: "SHA-256 checked, then saved" },
-];
-
-function Steps() {
-  return (
-    <div className="animate-rise" style={{ animationDelay: "420ms" }}>
-    <ol className="grid grid-cols-3 gap-2 text-center">
-      {STEPS.map(({ Icon, title, text }, i) => (
-        <li key={title} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-2 py-3">
-          <div className="mx-auto grid size-8 place-items-center rounded-lg bg-gold/10 text-gold">
-            <Icon className="size-4" />
-          </div>
-          <p className="mt-2 text-xs font-medium text-zinc-200">
-            <span className="text-zinc-500">{i + 1}.</span> {title}
-          </p>
-          <p className="mt-0.5 hidden text-[11px] text-zinc-500 sm:block">{text}</p>
-        </li>
-      ))}
-    </ol>
-    <p className="mt-3 text-center text-[11px] text-zinc-500">
-      <Zap className="mr-1 inline size-3 -translate-y-px text-gold/70" />
-      Found a mistake in your report? Contact the GBM College internship cell.
-    </p>
-    </div>
+    </span>
   );
 }

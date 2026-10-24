@@ -25,11 +25,18 @@ IPs in Atlas → Network Access (`0.0.0.0/0`, since Vercel has no fixed IPs).
 | Route | Returns |
 |---|---|
 | `GET /api/status` | Database health and report counts per domain |
-| `GET /api/reports/:roll` | Student and file details for a university roll or registration number (no PDF) |
-| `GET /api/reports/:roll/pdf` | The PDF (`?download=1` to save instead of view) |
+| `GET /api/reports` | Every report's details (no PDFs) for the **All reports** page |
+| `GET /api/reports/:roll` | One student's details by university roll or registration number |
+| `GET /api/reports/:roll/pdf` | That student's PDF (`?download=1` to save instead of view) |
+| `GET /api/download/:id` | A PDF by student id, as linked from the list (`?view=1` to open inline) |
+| `POST /api/corrections` | A student's correction (`type: "edit"`) or request for a missing report (`type: "missing"`) |
 
-Lookups are rate limited per IP (120 requests / 10 min per server instance). Responses carry a
-`Server-Timing` header; the PDF route also sends `X-Content-SHA256`, which the page checks after download.
+Reads are rate limited per IP (120 requests / 10 min per server instance), corrections more
+tightly (12 / 10 min). Responses carry a `Server-Timing` header; PDFs also send
+`X-Content-SHA256`, which the page checks after download.
+
+Corrections are stored in the `corrections` collection with status `pending`; nothing changes in a
+report until the office applies it with `generator/corrections.mjs`.
 
 ## Adding or updating reports
 
@@ -39,6 +46,7 @@ Reports are built and uploaded from `../generator`:
 cd ../generator
 node build.mjs --only <id>                                          # rebuild a PDF
 node --env-file=../gbm-internship-reports/.env.local upload.mjs     # upload all (or --only <id>)
+node --env-file=../gbm-internship-reports/.env.local corrections.mjs # review corrections from students
 ```
 
 Each document holds the student's details, the PDF as binary data, its size, page count and SHA-256.

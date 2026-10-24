@@ -1,5 +1,5 @@
 import { connection, type NextRequest } from "next/server";
-import { COLLECTION, DB_NAME, getReports, maskedClusterHost } from "@/lib/db";
+import { COLLECTION, DB_NAME, getCorrections, getReports, maskedClusterHost, toRow } from "@/lib/db";
 import { errorResponse, rateLimit, serverTiming } from "@/lib/http";
 import { normalizeRoll } from "@/lib/roll";
 import type { ReportMeta } from "@/lib/types";
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/reports/
     const queryStarted = performance.now();
     const doc = await col.findOne(
       { $or: [{ universityRoll: roll }, { registrationNo: roll }] },
-      { projection: { pdf: 0 } },
+      { projection: { pdf: 0, contentType: 0 } },
     );
     const queryMs = performance.now() - queryStarted;
     const totalMs = performance.now() - started;
@@ -30,18 +30,12 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/reports/
       return errorResponse(404, "not_found", `No report is registered for ${roll}.`, { "Server-Timing": timing });
     }
 
+    const pending = await getCorrections().then((c) =>
+      c.countDocuments({ studentId: doc.studentId, status: "pending", type: "edit" }, { limit: 1 }),
+    );
     const matchedBy = doc.universityRoll === roll ? "universityRoll" : "registrationNo";
     const body: ReportMeta = {
-      student: {
-        name: doc.name,
-        programme: doc.programme,
-        department: doc.department,
-        semester: doc.semester,
-        session: doc.session,
-        collegeRoll: doc.collegeRoll,
-        domain: doc.domain,
-        language: doc.language,
-      },
+      student: toRow(doc, pending > 0),
       file: {
         name: doc.fileName,
         pages: doc.pages,
