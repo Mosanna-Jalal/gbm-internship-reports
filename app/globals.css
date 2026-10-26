@@ -31,6 +31,10 @@
   --ok: #217a4b;
   --bad: #b42318;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -16px rgb(0 0 0 / 0.12);
+  --brand-github: #24292f;
+  --brand-linkedin: #0a66c2;
+  --brand-instagram: #c13584;
+  --brand-x: #0f1419;
   color-scheme: light;
 }
 
@@ -48,6 +52,10 @@
     --ok: #6fcf97;
     --bad: #f28b82;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -16px rgb(0 0 0 / 0.7);
+    --brand-github: #f0f6fc;
+    --brand-linkedin: #70b5f9;
+    --brand-instagram: #f77eb9;
+    --brand-x: #e7e9ea;
     color-scheme: dark;
   }
 }
@@ -86,6 +94,21 @@ body {
   :focus-visible {
     outline: 2px solid var(--fg);
     outline-offset: 2px;
+  }
+}
+
+/* Footer social links: quiet by default, a soft tint of the brand colour on hover. */
+@layer components {
+  .social {
+    color: var(--faint);
+    border-color: var(--line);
+    background: var(--surface);
+  }
+  .social:hover,
+  .social:focus-visible {
+    color: var(--tint);
+    border-color: color-mix(in oklab, var(--tint) 32%, var(--line));
+    background: color-mix(in oklab, var(--tint) 7%, var(--surface));
   }
 }
 
