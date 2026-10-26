@@ -55,12 +55,12 @@ export function Terminal({ lines, busy }: { lines: TermLine[]; busy: boolean }) 
           <Line key={line.id} line={line} />
         ))}
         {/* Pinned above the prompt so it stays in view while the log scrolls. */}
-        <div className="my-1 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <span className="hidden w-[52px] shrink-0 sm:inline" />
-          <span className="inline-flex shrink-0 overflow-hidden rounded-[2px] ring-1 ring-white/25">
-            <PalestineFlag className="block h-[10px] w-5" />
+          <span className="inline-flex shrink-0 overflow-hidden rounded-[1.5px] opacity-90 ring-1 ring-white/10">
+            <PalestineFlag className="block h-[8px] w-4" />
           </span>
-          <span className="font-semibold tracking-[0.16em] text-zinc-100">FREE PALESTINE</span>
+          <span className="text-zinc-400">Free Palestine</span>
         </div>
         <div className="flex items-center gap-2 text-zinc-600">
           <span>❯</span>
