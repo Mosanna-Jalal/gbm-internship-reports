@@ -4,7 +4,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Download, FilePlus2, PencilLine, RotateCw, Search, X } from "lucide-react";
 import { CorrectionDialog, type CorrectionTarget } from "@/components/correction-dialog";
-import { Button, Chip, Eyebrow, buttonClass } from "@/components/ui";
+import { Button, Chip, DomainDot, Eyebrow, buttonClass } from "@/components/ui";
 import { formatMs } from "@/lib/format";
 import { DOMAINS, type ApiError, type Domain, type ReportList, type ReportRow } from "@/lib/types";
 
@@ -84,7 +84,7 @@ export function ReportsBrowser() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, university roll or class roll"
-              className="h-11 w-full rounded-xl border border-line-strong bg-surface pl-10 pr-10 text-[14px] outline-none transition placeholder:text-faint focus:border-fg focus:ring-4 focus:ring-fg/[0.06]"
+              className="h-11 w-full rounded-xl border border-line-strong bg-surface pl-10 pr-10 text-[14px] outline-none transition placeholder:text-faint focus:border-accent/50 focus:ring-4 focus:ring-accent/10"
             />
             {query && (
               <button
@@ -105,12 +105,13 @@ export function ReportsBrowser() {
                 role="tab"
                 aria-selected={domain === d}
                 onClick={() => setDomain(d)}
-                className={`whitespace-nowrap rounded-lg px-2 py-1.5 text-[13px] transition sm:px-3 ${
+                className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-1.5 text-[13px] transition sm:px-3 ${
                   domain === d ? "bg-surface font-medium text-fg shadow-card" : "text-muted hover:text-fg"
                 }`}
               >
+                {d !== "All" && <DomainDot domain={d} />}
                 {d}
-                {load.state === "ready" && <span className="ml-1.5 hidden tabular-nums text-faint sm:inline">{counts[d] ?? 0}</span>}
+                {load.state === "ready" && <span className="hidden tabular-nums text-faint sm:inline">{counts[d] ?? 0}</span>}
               </button>
             ))}
           </div>
@@ -175,7 +176,10 @@ export function ReportsBrowser() {
                       </td>
                       <td className="py-3 pr-4 font-mono text-[13px] tabular-nums">{r.collegeRoll}</td>
                       <td className="py-3 pr-4">
-                        <span className="text-[13px]">{r.domain}</span>
+                        <span className="inline-flex items-center gap-2 text-[13px]">
+                          <DomainDot domain={r.domain} />
+                          {r.domain}
+                        </span>
                         {r.correctionPending && (
                           <span className="ml-2">
                             <Chip tone="warn">correction pending</Chip>
@@ -197,8 +201,12 @@ export function ReportsBrowser() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-[15px] font-medium">{r.name}</p>
-                        <p className="mt-0.5 text-[12px] text-muted">
-                          {r.department ?? r.programme} · {r.semester} sem · {r.domain}
+                        <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[12px] text-muted">
+                          {r.department ?? r.programme} · {r.semester} sem ·
+                          <span className="inline-flex items-center gap-1">
+                            <DomainDot domain={r.domain} />
+                            {r.domain}
+                          </span>
                         </p>
                       </div>
                       {r.correctionPending && <Chip tone="warn">pending</Chip>}

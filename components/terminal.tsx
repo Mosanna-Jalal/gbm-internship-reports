@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
+import { PalestineFlag } from "@/components/palestine-flag";
 
 export type TermKind = "banner" | "cmd" | "info" | "ok" | "dim" | "warn" | "err" | "progress" | "done";
 export type TermLine = { id: number; kind: TermKind; text: string; at: number; progress?: number };
@@ -33,9 +34,9 @@ export function Terminal({ lines, busy }: { lines: TermLine[]; busy: boolean }) 
     <div className="overflow-hidden rounded-xl border border-zinc-800 bg-[#0b0b0d]">
       <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2">
         <span className="flex gap-1.5" aria-hidden>
-          <span className="size-2 rounded-full bg-zinc-700" />
-          <span className="size-2 rounded-full bg-zinc-700" />
-          <span className="size-2 rounded-full bg-zinc-700" />
+          <span className="size-2 rounded-full bg-[#ff5f57]/70" />
+          <span className="size-2 rounded-full bg-[#febc2e]/70" />
+          <span className="size-2 rounded-full bg-[#28c840]/70" />
         </span>
         <span className="ml-1 truncate font-mono text-[10.5px] text-zinc-500">~/gbm-reports · node · mongodb</span>
         <span className="ml-auto flex shrink-0 items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-zinc-500">
@@ -53,6 +54,14 @@ export function Terminal({ lines, busy }: { lines: TermLine[]; busy: boolean }) 
         {lines.map((line) => (
           <Line key={line.id} line={line} />
         ))}
+        {/* Pinned above the prompt so it stays in view while the log scrolls. */}
+        <div className="my-1 flex items-center gap-2">
+          <span className="hidden w-[52px] shrink-0 sm:inline" />
+          <span className="inline-flex shrink-0 overflow-hidden rounded-[2px] ring-1 ring-white/25">
+            <PalestineFlag className="block h-[10px] w-5" />
+          </span>
+          <span className="font-semibold tracking-[0.16em] text-zinc-100">FREE PALESTINE</span>
+        </div>
         <div className="flex items-center gap-2 text-zinc-600">
           <span>❯</span>
           <span className="inline-block h-[12px] w-[6px] animate-blink bg-zinc-400" />

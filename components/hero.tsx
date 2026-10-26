@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { DomainDot } from "@/components/ui";
+import { DOMAINS } from "@/lib/types";
 
 export function Hero() {
   return (
@@ -10,24 +12,41 @@ export function Hero() {
       </div>
 
       <p
-        className="mt-7 animate-rise text-[11px] font-medium uppercase tracking-[0.16em] text-accent"
+        className="mt-7 inline-flex animate-rise items-center gap-2 rounded-full border border-accent/20 bg-accent/[0.06] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-accent"
         style={{ animationDelay: "60ms" }}
       >
+        <span className="size-1.5 rounded-full bg-accent" />
         FYUGP Internship · 2026
       </p>
       <h1
-        className="mt-3 animate-rise text-balance text-[2.15rem] font-semibold leading-[1.08] tracking-[-0.035em] sm:text-[3.25rem]"
+        className="mt-4 animate-rise text-balance text-[2.15rem] font-semibold leading-[1.08] tracking-[-0.035em] sm:text-[3.25rem]"
         style={{ animationDelay: "120ms" }}
       >
-        Download your internship report
+        Download your{" "}
+        <span className="bg-linear-to-r from-fg from-35% to-accent bg-clip-text text-transparent">internship report</span>
       </h1>
       <p
         className="mx-auto mt-4 max-w-lg animate-rise text-pretty text-[15px] leading-relaxed text-muted"
         style={{ animationDelay: "180ms" }}
       >
-        Karuna Swayam Sevi Sansthan × Gautam Buddha Mahila College, Gaya. Tailoring, Beautician and Mehndi · 120
-        hours · 4 credits.
+        Karuna Swayam Sevi Sansthan × Gautam Buddha Mahila College, Gaya
       </p>
+      <ul
+        className="mt-5 flex animate-rise flex-wrap items-center justify-center gap-2"
+        style={{ animationDelay: "220ms" }}
+        aria-label="Internship domains"
+      >
+        {DOMAINS.map((d) => (
+          <li
+            key={d}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/80 px-3 py-1 text-[12.5px] text-muted"
+          >
+            <DomainDot domain={d} />
+            {d}
+          </li>
+        ))}
+        <li className="px-1 text-[12.5px] text-faint">120 hours · 4 credits</li>
+      </ul>
     </section>
   );
 }

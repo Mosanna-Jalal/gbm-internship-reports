@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, MotionConfig } from "motion/react";
 import { toast } from "sonner";
-import { ArrowRight, LoaderCircle, Search } from "lucide-react";
+import { ArrowRight, LoaderCircle, Search, Users } from "lucide-react";
 import { Terminal, type TermKind, type TermLine } from "@/components/terminal";
 import { ResultCard, type ReportResult } from "@/components/result-card";
 import { CorrectionDialog, type CorrectionTarget } from "@/components/correction-dialog";
@@ -269,7 +269,11 @@ export function ReportFinder() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="flex flex-col gap-4">
-        <div className="animate-rise rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-6" style={{ animationDelay: "240ms" }}>
+        <div className="relative animate-rise rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-6" style={{ animationDelay: "240ms" }}>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-10 -top-px h-px bg-linear-to-r from-transparent via-accent/45 to-transparent"
+          />
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="roll" className="text-[13px] font-medium">
               University roll number
@@ -291,7 +295,7 @@ export function ReportFinder() {
               maxLength={20}
               placeholder="e.g. 24281041312"
               aria-describedby="roll-help"
-              className="h-12 w-full rounded-xl sm:flex-1 border border-line-strong bg-bg px-4 font-mono text-[16px] tracking-[0.08em] outline-none transition placeholder:font-sans placeholder:tracking-normal placeholder:text-faint focus:border-fg focus:ring-4 focus:ring-fg/[0.06]"
+              className="h-12 w-full rounded-xl sm:flex-1 border border-line-strong bg-bg px-4 font-mono text-[16px] tracking-[0.08em] outline-none transition placeholder:font-sans placeholder:tracking-normal placeholder:text-faint focus:border-accent/50 focus:ring-4 focus:ring-accent/10"
             />
             <button type="submit" disabled={busy} className={buttonClass("primary", "h-12 px-6 disabled:!opacity-80")}>
               {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" strokeWidth={1.75} />}
@@ -324,11 +328,16 @@ export function ReportFinder() {
           className="group flex animate-rise items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-5 py-4 transition hover:border-line-strong"
           style={{ animationDelay: "320ms" }}
         >
-          <span className="min-w-0">
-            <span className="block text-[14px] font-medium">Can’t find your report?</span>
-            <span className="mt-0.5 block text-[13px] text-muted">
-              {vault.state === "online" && vault.reports ? `Browse all ${vault.reports} reports` : "Browse all reports"}, check
-              your roll numbers, or ask for a correction.
+          <span className="flex min-w-0 items-center gap-4">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-bg text-muted transition group-hover:text-fg">
+              <Users className="size-[18px]" strokeWidth={1.75} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[14px] font-medium">Can’t find your report?</span>
+              <span className="mt-0.5 block text-[13px] text-muted">
+                {vault.state === "online" && vault.reports ? `Browse all ${vault.reports} reports` : "Browse all reports"},
+                check your roll numbers, or ask for a correction.
+              </span>
             </span>
           </span>
           <ArrowRight className="size-4 shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-fg" />

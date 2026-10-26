@@ -35,3 +35,25 @@ export function Chip({ children, tone = "plain", icon }: { children: ReactNode; 
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <p className={`text-[11px] font-medium uppercase tracking-[0.16em] text-faint ${className}`}>{children}</p>;
 }
+
+const DOMAIN_COLOR: Record<string, string> = {
+  Tailoring: "var(--dom-tailoring)",
+  Beautician: "var(--dom-beautician)",
+  Mehndi: "var(--dom-mehndi)",
+};
+
+/** Small colour dot that identifies an internship domain. */
+export function DomainDot({ domain, className = "" }: { domain: string; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block size-1.5 shrink-0 rounded-full ${className}`}
+      style={{ background: DOMAIN_COLOR[domain] ?? "var(--faint)" }}
+    />
+  );
+}
+
+/** Decorative glow behind a page heading; place inside a `relative isolate` wrapper. */
+export function PageGlow() {
+  return <div aria-hidden className="page-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px]" />;
+}

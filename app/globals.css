@@ -35,6 +35,9 @@
   --brand-linkedin: #0a66c2;
   --brand-instagram: #c13584;
   --brand-x: #0f1419;
+  --dom-tailoring: #5b6ee1;
+  --dom-beautician: #d4537e;
+  --dom-mehndi: #c27c2c;
   color-scheme: light;
 }
 
@@ -56,6 +59,9 @@
     --brand-linkedin: #70b5f9;
     --brand-instagram: #f77eb9;
     --brand-x: #e7e9ea;
+    --dom-tailoring: #93a1ff;
+    --dom-beautician: #f28fb3;
+    --dom-mehndi: #e9b46a;
     color-scheme: dark;
   }
 }
@@ -95,6 +101,14 @@ body {
     outline: 2px solid var(--fg);
     outline-offset: 2px;
   }
+}
+
+/* Faint accent glow and dot grid behind page headings, fading out downwards. */
+.page-glow {
+  background:
+    radial-gradient(ellipse 55% 65% at 50% 0%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 72%),
+    radial-gradient(color-mix(in oklab, var(--fg) 8%, transparent) 1px, transparent 1.5px) 0 0 / 22px 22px;
+  mask-image: linear-gradient(to bottom, #000 35%, transparent);
 }
 
 /* Footer social links: quiet by default, a soft tint of the brand colour on hover. */
